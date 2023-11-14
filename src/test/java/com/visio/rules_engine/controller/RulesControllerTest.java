@@ -12,6 +12,7 @@ import com.visio.rules_engine.model.Product;
 import com.visio.rules_engine.model.Rule;
 import com.visio.rules_engine.model.enums.Action;
 import com.visio.rules_engine.model.enums.ComparisonType;
+import com.visio.rules_engine.model.enums.Fields;
 import com.visio.rules_engine.model.enums.USState;
 import com.visio.rules_engine.service.RulesService;
 
@@ -47,8 +48,8 @@ public class RulesControllerTest {
     @Test
     void whenValidMultipleRuleBody_thenRulesShouldBeApplied() throws Exception {
         Product initProduct = new Product("Test", new BigDecimal(5.5), false);
-        Person person = new Person(700, USState.TEXAS);
-        Condition condition = new Condition("state", ComparisonType.EQUALS, "Texas");
+        Person person = new Person(new BigDecimal(700), USState.TEXAS);
+        Condition condition = new Condition(Fields.PERSON_STATE, ComparisonType.EQUALS, "Texas");
         List<Rule> rules = new ArrayList<>();
         rules.add(new Rule(Action.DISQUALIFY, null, true, condition));
         rules.add(new Rule(Action.INTEREST, new BigDecimal(3.0), false, condition));
@@ -67,7 +68,7 @@ public class RulesControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("name").value("Test"))
-                .andExpect(jsonPath("interest_rate").value("2.5"))
+                .andExpect(jsonPath("interestRate").value("2.5"))
                 .andExpect(jsonPath("disqualified").value("true")); 
     }    
 
@@ -75,7 +76,7 @@ public class RulesControllerTest {
     void whenInvalidLowCreditScore_thenShouldThrow400() throws Exception {
         Product initProduct = new Product("Test", new BigDecimal(5.5), false);
         Person person = MockPerson.createPerson_InvalidLowCreditScore();
-        Condition condition = new Condition("state", ComparisonType.EQUALS, "Texas");
+        Condition condition = new Condition(Fields.PERSON_STATE, ComparisonType.EQUALS, "Texas");
         List<Rule> rules = new ArrayList<>();
         rules.add(new Rule(Action.DISQUALIFY, null, true, condition));
 
@@ -99,7 +100,7 @@ public class RulesControllerTest {
     void whenInvalidHighCreditScore_thenShouldThrow400() throws Exception {
         Product initProduct = new Product("Test", new BigDecimal(5.5), false);
         Person person = MockPerson.createPerson_InvalidHighCreditScore();
-        Condition condition = new Condition("state", ComparisonType.EQUALS, "Texas");
+        Condition condition = new Condition(Fields.PERSON_STATE, ComparisonType.EQUALS, "Texas");
         List<Rule> rules = new ArrayList<>();
         rules.add(new Rule(Action.DISQUALIFY, null, true, condition));
 

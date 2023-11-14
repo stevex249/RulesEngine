@@ -6,6 +6,8 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.visio.rules_engine.exception.CustomException;
 
+import lombok.Getter;
+
 public enum USState {
 
     ALABAMA("Alabama", "AL"), ALASKA("Alaska", "AK"), AMERICAN_SAMOA("American Samoa", "AS"), ARIZONA("Arizona", "AZ"), ARKANSAS(
@@ -33,6 +35,7 @@ public enum USState {
     /**
      * The state's abbreviation.
      */
+    @Getter
     private String abbreviation;
 
     /**
@@ -56,15 +59,6 @@ public enum USState {
     USState(String name, String abbreviation) {
         this.name = name;
         this.abbreviation = abbreviation;
-    }
-
-    /**
-     * Returns the state's abbreviation.
-     *
-     * @return the state's abbreviation.
-     */
-    public String getAbbreviation() {
-        return abbreviation;
     }
 
     /**
@@ -101,7 +95,11 @@ public enum USState {
         USState usState = UNKNOWN;
 
         try {
-            usState = USState.valueOf(input.toUpperCase());
+            if (input.length() == 2) {
+                usState = STATES_BY_ABBR.get(input.toUpperCase());
+            } else {
+                usState = USState.valueOf(input.toUpperCase());
+            }
         } catch (Exception e) {
             throw new CustomException("Invalid State");
         }
