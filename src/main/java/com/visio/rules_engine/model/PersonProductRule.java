@@ -4,18 +4,29 @@ import java.util.List;
 
 import jakarta.validation.Valid;
 import lombok.Generated;
+import lombok.Getter;
+import lombok.Setter;
 
 public class PersonProductRule {
+
     @Generated
+    @Getter
+    @Setter
     private Long uid;
 
     @Valid
+    @Getter
+    @Setter
     private Product product;
 
     @Valid
+    @Getter
+    @Setter
     private Person person;
     
     @Valid
+    @Getter
+    @Setter
     private List<Rule> rules;
 
     public PersonProductRule(Product product, Person person, List<Rule> rules) {
@@ -23,30 +34,4 @@ public class PersonProductRule {
         this.person = person;
         this.rules = rules;
     }
-
-    public Long getUid() {
-        return uid;
-    }
-    public void setUid(Long uid) {
-        this.uid = uid;
-    }
-    public Product getProduct() {
-        return product;
-    }
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-    public Person getPerson() {
-        return person;
-    }
-    public void setPerson(Person person) {
-        this.person = person;
-    }
-    public List<Rule> getRules() {
-        return rules;
-    }
-    public void setRule(List<Rule> rules) {
-        this.rules = rules;
-    }
-    
 }

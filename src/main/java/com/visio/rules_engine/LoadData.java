@@ -26,7 +26,7 @@ public class LoadData {
             log.info("Added to Product: " + productRepository.save(new Product("Initial", new BigDecimal(5.0), false)));
         
             //Persons
-            log.info("Added to Person: " + personRepository.save(new Person(700, USState.TEXAS)));
+            log.info("Added to Person: " + personRepository.save(new Person(new BigDecimal(700), USState.TEXAS)));
 
         };
     }

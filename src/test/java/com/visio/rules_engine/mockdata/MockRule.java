@@ -6,10 +6,11 @@ import com.visio.rules_engine.model.Condition;
 import com.visio.rules_engine.model.Rule;
 import com.visio.rules_engine.model.enums.Action;
 import com.visio.rules_engine.model.enums.ComparisonType;
+import com.visio.rules_engine.model.enums.Fields;
 
 public class MockRule {
     public static Rule createRule_valid() {
-        Condition condition = new Condition("state", ComparisonType.EQUALS, "texas");
+        Condition condition = new Condition(Fields.PERSON_STATE, ComparisonType.EQUALS, "texas");
         return new Rule(Action.DISQUALIFY, null, true, condition);
     }   
 
