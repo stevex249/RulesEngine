@@ -28,4 +28,13 @@ public class MockPerson {
 
         return personObject;
     }
+
+    public static ObjectNode createPersonObject_ValidStateAbbrv() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode personObject = objectMapper.createObjectNode();
+        personObject.put("creditScore", "700");
+        personObject.put("state", "aK");
+
+        return personObject;
+    }
 }

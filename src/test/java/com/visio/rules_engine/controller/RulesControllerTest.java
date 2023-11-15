@@ -1,6 +1,7 @@
 package com.visio.rules_engine.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.visio.rules_engine.mockdata.MockPerson;
 import com.visio.rules_engine.mockdata.MockProduct;
@@ -73,6 +74,36 @@ public class RulesControllerTest {
     }    
 
     @Test
+    void whenValidMultipleInterestBody_thenRulesShouldBeApplied() throws Exception {
+        Condition condition = new Condition(Fields.PERSON_STATE, ComparisonType.EQUALS, "Texas");
+        Condition condition2 = new Condition(Fields.PERSON_STATE, ComparisonType.EQUALS, "Ak");
+        List<Rule> rules = new ArrayList<>();
+        rules.add(new Rule(Action.DISQUALIFY, null, true, condition));
+        rules.add(new Rule(Action.INTEREST, new BigDecimal(3.0), false, condition2));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode jsonObject = objectMapper.createObjectNode();
+        jsonObject.set("person", MockPerson.createPersonObject_ValidStateAbbrv());
+        jsonObject.set("product", MockProduct.createProductObject_Valid());
+        ArrayNode rulesArray = objectMapper.valueToTree(rules);
+        jsonObject.set("rule", rulesArray);
+
+        String pprJson = objectMapper.writeValueAsString(jsonObject);
+
+        Product product = new Product("Valid", new BigDecimal(13.0), true);
+        Mockito.when(rulesService.applyRule(Mockito.any(PersonProductRule.class))).thenReturn(product);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/applyrule")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(pprJson))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("name").value("Valid"))
+                .andExpect(jsonPath("interestRate").value("13"))
+                .andExpect(jsonPath("disqualified").value("true")); 
+    }  
+
+    @Test
     void whenInvalidLowCreditScore_thenShouldThrow400() throws Exception {
         Product initProduct = new Product("Test", new BigDecimal(5.5), false);
         Person person = MockPerson.createPerson_InvalidLowCreditScore();
@@ -142,27 +173,4 @@ public class RulesControllerTest {
 
         assertTrue(result.getResponse().getContentAsString().contains("Invalid State"));
     }
-
-
-    // @Test
-    // void whenInvalidMultipleRuleBody_thenRulesShouldBeApplied() throws Exception {
-    //     ObjectMapper objectMapper = new ObjectMapper();
-
-    //     ObjectNode jsonObject = objectMapper.createObjectNode();
-    //     ObjectNode personObject = objectMapper.createObjectNode();
-    //     jsonObject.set("person", personObject);
-
-
-    //     Product product = new Product("Test", new BigDecimal(2.5), true);
-    //     Mockito.when(rulesService.applyRule(Mockito.any(PersonProductRule.class))).thenReturn(product);
-
-    //     mockMvc.perform(MockMvcRequestBuilders.post("/rule")
-    //             .contentType(MediaType.APPLICATION_JSON)
-    //             .content(pprJson))
-    //             .andExpect(status().isOk())
-    //             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-    //             .andExpect(jsonPath("name").value("Test"))
-    //             .andExpect(jsonPath("interest_rate").value("2.5"))
-    //             .andExpect(jsonPath("disqualified").value("true")); 
-    // }
 }

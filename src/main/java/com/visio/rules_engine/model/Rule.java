@@ -34,4 +34,15 @@ public class Rule {
         this.disqualify = disqualify;
         this.condition = condition;
     }
+
+    // @JsonCreator
+    // public static BigDecimal fromString(String input) {        
+    //     try {
+    //         BigDecimal bd = new BigDecimal(input);
+    //         bd = bd.setScale(3, RoundingMode.HALF_UP);
+    //         return bd;
+    //     } catch (Exception e) {
+    //         throw new CustomException("Invalid number");
+    //     }
+    // }
 }

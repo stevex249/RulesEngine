@@ -2,7 +2,6 @@ package com.visio.rules_engine.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -12,11 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import com.visio.rules_engine.exception.CustomException;
 import com.visio.rules_engine.mockdata.MockPerson;
@@ -106,21 +100,73 @@ public class RulesServiceTest {
     }
 
     @Test
+    void whenMultipleRules_thenShouldOnlyApplyMatchedConditions() throws Exception {
+        Product initProduct = new Product("Test", new BigDecimal(5.5), false);
+        Person person = MockPerson.createPerson_Valid700CreditScore();
+        Condition conditionState = new Condition(Fields.PERSON_STATE, ComparisonType.EQUALS, "tX");
+        Condition conditionStateMatchFail = new Condition(Fields.PERSON_STATE, ComparisonType.EQUALS, "Ar");
+
+        List<Rule> rules = new ArrayList<>();
+        rules.add(new Rule(Action.INTEREST, new BigDecimal (-2.2), null, conditionState));
+        rules.add(new Rule(Action.INTEREST, new BigDecimal (-3.0), null, conditionStateMatchFail));
+
+        PersonProductRule ppr = new PersonProductRule(initProduct, person, rules); 
+
+        assertEquals(rulesService.applyRule(ppr).getInterestRate().compareTo(new BigDecimal(3.3)), 0);
+    }
+
+    @Test
+    void whenMultipleRules_thenShouldApplyAll() throws Exception {
+        Product initProduct = new Product("Test", new BigDecimal("5.5"), false);
+        Person person = MockPerson.createPerson_Valid700CreditScore();
+        Condition conditionState = new Condition(Fields.PRODUCT_NAME, ComparisonType.EQUALS, "test");
+        Condition conditionStateNotMatch = new Condition(Fields.PERSON_STATE, ComparisonType.NOT_EQUALS, "Ar");
+
+        List<Rule> rules = new ArrayList<>();
+        rules.add(new Rule(Action.INTEREST, new BigDecimal ("-2.2"), null, conditionState));
+        rules.add(new Rule(Action.INTEREST, new BigDecimal ("-3.0"), null, conditionStateNotMatch));
+
+        PersonProductRule ppr = new PersonProductRule(initProduct, person, rules); 
+
+        assertEquals(0, rulesService.applyRule(ppr).getInterestRate().compareTo(new BigDecimal("0.3")));
+    }
+
+    @Test
+    void whenDecimalConditions_thenShouldApplyAll() throws Exception {
+        Product initProduct = new Product("Test", new BigDecimal("9.9"), false);
+        Person person = MockPerson.createPerson_Valid700CreditScore();
+        Condition conditionCreditScore = new Condition(Fields.PERSON_CREDITSCORE, ComparisonType.EQUALS, "700");
+        Condition conditionCreditScoreNotMatch = new Condition(Fields.PERSON_CREDITSCORE, ComparisonType.NOT_EQUALS, "650");
+        Condition conditionCreditScoreEqGreater = new Condition(Fields.PERSON_CREDITSCORE, ComparisonType.EQUALS_GREATER_THAN, "700");
+        Condition conditionCreditScoreEqLess = new Condition(Fields.PERSON_CREDITSCORE, ComparisonType.EQUALS_LESS_THAN, "800");
+
+        List<Rule> rules = new ArrayList<>();
+        rules.add(new Rule(Action.INTEREST, new BigDecimal ("-1.0"), null, conditionCreditScore));
+        rules.add(new Rule(Action.INTEREST, new BigDecimal ("-2.2"), null, conditionCreditScoreNotMatch));
+        rules.add(new Rule(Action.INTEREST, new BigDecimal ("-3.3"), null, conditionCreditScoreEqGreater));
+        rules.add(new Rule(Action.INTEREST, new BigDecimal ("-.6"), null, conditionCreditScoreEqLess));
+
+        PersonProductRule ppr = new PersonProductRule(initProduct, person, rules); 
+
+        assertEquals(0, rulesService.applyRule(ppr).getInterestRate().compareTo(new BigDecimal("2.8")));
+    }
+
+    @Test
     void whenMultipleApplied_thenShouldAllApplyInterest() throws Exception {
         Product initProduct = new Product("Test", new BigDecimal(10.0), true);
         Person person = MockPerson.createPerson_Valid700CreditScore();
         Condition condition1 = new Condition(Fields.PERSON_CREDITSCORE, ComparisonType.BETWEEN, "500,710");
         Condition condition2 = new Condition(Fields.PERSON_CREDITSCORE, ComparisonType.BETWEEN, "650,750");
-        Condition condition3 = new Condition(Fields.PERSON_CREDITSCORE, ComparisonType.BETWEEN, "700,800");
+        Condition condition3 = new Condition(Fields.PERSON_CREDITSCORE, ComparisonType.BETWEEN, "699,800");
         List<Rule> rules = new ArrayList<>();
-        rules.add(new Rule(Action.INTEREST, new BigDecimal(0.60), null, condition1));
-        rules.add(new Rule(Action.INTEREST, new BigDecimal(0.40), null, condition2));
-        rules.add(new Rule(Action.INTEREST, new BigDecimal(-1.50), null, condition3));
+        rules.add(new Rule(Action.INTEREST, new BigDecimal("0.60"), null, condition1));
+        rules.add(new Rule(Action.INTEREST, new BigDecimal("0.40"), null, condition2));
+        rules.add(new Rule(Action.INTEREST, new BigDecimal("-1.50"), null, condition3));
 
 
         PersonProductRule ppr = new PersonProductRule(initProduct, person, rules); 
 
-        assertEquals(rulesService.applyRule(ppr).getInterestRate().compareTo(new BigDecimal(9.5)), 0);
+        assertEquals(rulesService.applyRule(ppr).getInterestRate().compareTo(new BigDecimal("9.5")), 0);
     }
 
     @Test
